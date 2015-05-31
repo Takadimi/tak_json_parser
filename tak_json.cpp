@@ -49,6 +49,16 @@ typedef enum
 
 typedef enum
 {
+	ARR_INTEGER,
+	ARR_FLOAT,
+	ARR_BOOLEAN,
+	ARR_STRING,
+	ARR_OBJECT,
+	ARR_NO_TYPE
+} JSON_ARRAY_TYPE;
+
+typedef enum
+{
 	PARSING_OBJECT,
 	PARSING_KEY_NAME,
 	PARSING_VALUE
@@ -73,6 +83,42 @@ void print_parser(Parser* parser)
 	printf("curr_int_value: %d\n", parser->curr_int_value);
 }
 
+JSON_ARRAY_TYPE peek_array_value_type(const char* json_str, const long str_length, Parser* parser)
+{
+	JSON_ARRAY_TYPE array_value_type = ARR_NO_TYPE;
+	int peek_index = parser->json_str_index + 1;
+
+	while (peek_index < str_length && json_str[peek_index] != ',')
+	{
+		switch (json_str[peek_index])
+		{
+			case '\"':
+				array_value_type = ARR_STRING;
+				break;
+			case '1': case '2': case '3': case '4': case '5': 
+			case '6': case '7': case '8': case '9': case '0':
+				array_value_type = ARR_INTEGER;
+				break;
+		}
+
+		peek_index++;
+	}
+
+	return array_value_type;
+}
+
+void parse_JSON_array(const char* json_str, const long str_length, Parser* parser)
+{
+	int array_value_type = peek_array_value_type(json_str, str_length, parser);
+
+	while (parser->json_str_index < str_length && json_str[parser->json_str_index] != ']')
+	{
+		printf("%c", json_str[parser->json_str_index]);
+
+		parser->json_str_index++;
+	}
+}
+
 void parse_JSON_key_name(const char* json_str, const long str_length, Parser* parser)
 {
 	// parser->state = PARSING_KEY_NAME;
@@ -94,8 +140,13 @@ void parse_JSON_value(const char* json_str, const long str_length, Parser* parse
 	printf("VALUE: ");
 	parser->json_str_index++;
 
-	while (parser->json_str_index < str_length && json_str[parser->json_str_index] != ',')
+	while (parser->json_str_index < str_length && json_str[parser->json_str_index] != ',' && json_str[parser->json_str_index] != '}')
 	{
+		if (json_str[parser->json_str_index] == '[')
+		{
+			parse_JSON_array(json_str, str_length, parser);
+		}
+
 		printf("%c", json_str[parser->json_str_index]);
 		parser->json_str_index++;
 	}
