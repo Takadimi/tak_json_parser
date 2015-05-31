@@ -1,3 +1,3 @@
 @echo off
 
-g++ -Wall -Werror -pedantic tak_json.cpp -g -o tj
+cl /Z7 tak_json.cpp

@@ -75,13 +75,13 @@ void print_parser(Parser* parser)
 
 void parse_JSON_key_name(const char* json_str, const long str_length, Parser* parser)
 {
-	// parser->state = PARSING_KEY_NAME; 
+	// parser->state = PARSING_KEY_NAME;
+	printf("KEY NAME: ");
 	parser->json_str_index++;
 
 	while (parser->json_str_index < str_length && json_str[parser->json_str_index] != '\"')
 	{
-		char c = json_str[parser->json_str_index];
-		printf("%c", c);
+		printf("%c", json_str[parser->json_str_index]);
 		parser->json_str_index++;
 	}
 
@@ -91,10 +91,12 @@ void parse_JSON_key_name(const char* json_str, const long str_length, Parser* pa
 void parse_JSON_value(const char* json_str, const long str_length, Parser* parser)
 {
 	// parser->state = PARSING_VALUE;
+	printf("VALUE: ");
 	parser->json_str_index++;
 
 	while (parser->json_str_index < str_length && json_str[parser->json_str_index] != ',')
 	{
+		printf("%c", json_str[parser->json_str_index]);
 		parser->json_str_index++;
 	}
 
@@ -120,6 +122,7 @@ void parse_JSON_object(const char* json_str, const long str_length, Parser* pars
 
 			case ':':
 				parse_JSON_value(json_str, str_length, parser);
+				printf("\n");
 				break;
 
 			default:
