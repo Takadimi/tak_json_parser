@@ -67,30 +67,31 @@ typedef enum
 typedef struct
 {
 	// PARSING_STATE state;
-	int json_str_index;
+	char* json_str;
+	long str_length;
 	char curr_key_name[1024];
 	char curr_str_value[1024];
 	int curr_int_value;
+	float curr_float_value;
 } Parser;
 
 void print_parser(Parser* parser)
 {
 	printf("Parser:\n");
 	// printf("state: %d\n", parser->state);
-	printf("json_str_index: %d\n", parser->json_str_index);
 	printf("curr_key_name: %s\n", parser->curr_key_name);
 	printf("curr_str_value: %s\n", parser->curr_str_value);
 	printf("curr_int_value: %d\n", parser->curr_int_value);
 }
 
-JSON_ARRAY_TYPE peek_array_value_type(const char* json_str, const long str_length, Parser* parser)
+JSON_ARRAY_TYPE peek_array_value_type(Parser* parser)
 {
 	JSON_ARRAY_TYPE array_value_type = ARR_NO_TYPE;
-	int peek_index = parser->json_str_index + 1;
+	char* peek_str = parser->json_str + 1;
 
-	while (peek_index < str_length && json_str[peek_index] != ',')
+	while (*peek_str && *peek_str != ',')
 	{
-		switch (json_str[peek_index])
+		switch (*peek_str)
 		{
 			case '\"':
 				array_value_type = ARR_STRING;
@@ -101,78 +102,78 @@ JSON_ARRAY_TYPE peek_array_value_type(const char* json_str, const long str_lengt
 				break;
 		}
 
-		peek_index++;
+		peek_str++;	
 	}
 
 	return array_value_type;
 }
 
-void parse_JSON_array(const char* json_str, const long str_length, Parser* parser)
+void parse_JSON_array(Parser* parser)
 {
-	int array_value_type = peek_array_value_type(json_str, str_length, parser);
+	int array_value_type = peek_array_value_type(parser);
 
-	while (parser->json_str_index < str_length && json_str[parser->json_str_index] != ']')
+	while (*(parser->json_str) && *(parser->json_str) != ']')
 	{
-		printf("%c", json_str[parser->json_str_index]);
+		printf("%c", *(parser->json_str));
 
-		parser->json_str_index++;
+		parser->json_str++;
 	}
 }
 
-void parse_JSON_key_name(const char* json_str, const long str_length, Parser* parser)
+void parse_JSON_key_name(Parser* parser)
 {
 	// parser->state = PARSING_KEY_NAME;
 	printf("KEY NAME: ");
-	parser->json_str_index++;
+	parser->json_str++;
 
-	while (parser->json_str_index < str_length && json_str[parser->json_str_index] != '\"')
+	while (*(parser->json_str) && *(parser->json_str) != '\"')
 	{
-		printf("%c", json_str[parser->json_str_index]);
-		parser->json_str_index++;
+		printf("%c", *(parser->json_str));
+		parser->json_str++;
 	}
 
 	// parser->state = PARSING_OBJECT;
 }
 
-void parse_JSON_value(const char* json_str, const long str_length, Parser* parser)
+void parse_JSON_value(Parser* parser)
 {
 	// parser->state = PARSING_VALUE;
 	printf("VALUE: ");
-	parser->json_str_index++;
+	parser->json_str++;
 
-	while (parser->json_str_index < str_length && json_str[parser->json_str_index] != ',' && json_str[parser->json_str_index] != '}')
+	while (*(parser->json_str) != ',' && *(parser->json_str) != '}')
 	{
-		if (json_str[parser->json_str_index] == '[')
+		if (*(parser->json_str) == '[')
 		{
-			parse_JSON_array(json_str, str_length, parser);
+			parse_JSON_array(parser);
 		}
 
-		printf("%c", json_str[parser->json_str_index]);
-		parser->json_str_index++;
+		printf("%c", *(parser->json_str));
+		parser->json_str++;
 	}
 
 	// parser->state = PARSING_OBJECT;
 }
 
-void parse_JSON_object(const char* json_str, const long str_length, Parser* parser)
+void parse_JSON(Parser* parser)
 {
 	// parser->state = PARSING_OBJECT;
 
-	while (parser->json_str_index < str_length && json_str[parser->json_str_index] != '}')
+	while (*(parser->json_str) && *(parser->json_str) != '}')
 	{
-		char c = json_str[parser->json_str_index];
+		char c = *(parser->json_str);
 		switch (c)
 		{
 			case '\"':
 				// if (parser->state == PARSING_OBJECT)
 				// {
-				parse_JSON_key_name(json_str, str_length, parser);
+				parse_JSON_key_name(parser);
 				printf("\n");
 				// }
 				break;	
 
 			case ':':
-				parse_JSON_value(json_str, str_length, parser);
+				parse_JSON_value(parser);
 				printf("\n");
 				break;
 
@@ -180,24 +181,7 @@ void parse_JSON_object(const char* json_str, const long str_length, Parser* pars
 				break;
 		}
 
-		parser->json_str_index++;
-	}
-}
-
-void parse_JSON(const char* json_str, const long str_length, Parser* parser)
-{
-	while (parser->json_str_index < str_length)
-	{
-		switch (json_str[parser->json_str_index])	
-		{
-			case '{': 
-				parse_JSON_object(json_str, str_length, parser);	
-				break;
-			default:
-				break;
-		}
-
-		parser->json_str_index++;
+		parser->json_str++;	
 	}
 }
 
@@ -226,9 +210,11 @@ int main()
 
 	Parser parser = {};
 
-	parse_JSON(buffer, length, &parser);
+	parser.json_str = (char*) malloc(length);
+	strcpy(parser.json_str, buffer);
+	parser.str_length = length;
 
-	delete_parser(&parser);
+	parse_JSON(&parser);
 
 	return 0;
 }
