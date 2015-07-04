@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "tak_json_parser.h"
+
 #define FILE_READ_ERR -1
 
 long get_file_length(const char* file_path)
