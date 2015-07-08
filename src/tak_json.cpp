@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "tak_json_parser.h"
 
@@ -44,57 +45,30 @@ int read_json_file_into_string(const char* file_path, const long length, char* r
 
 typedef enum
 {
-	PRIMITIVE,
-	ARRAY,
-	STRING
-} JSON_TYPE;
-
-typedef enum
-{
-	ARR_INTEGER,
-	ARR_FLOAT,
-	ARR_BOOLEAN,
+	ARR_NO_TYPE,
 	ARR_STRING,
-	ARR_OBJECT,
-	ARR_NO_TYPE
+	ARR_INTEGER
 } JSON_ARRAY_TYPE;
-
-typedef enum
-{
-	PARSING_OBJECT,
-	PARSING_KEY_NAME,
-	PARSING_VALUE
-} PARSING_STATE;
 
 typedef struct Parser
 {
-	// PARSING_STATE state;
 	char* json_str;
 	long str_length;
-	char curr_key_name[1024];
-	char curr_str_value[1024];
-	int curr_int_value;
-	float curr_float_value;
 } Parser;
 
-typedef struct JSON_Obj
+typedef struct JSON_Item
 {
-	JSON_Obj* child;
-	JSON_Obj* next;
 	char* name;
 	char* string_value;
 	int int_value;
 	float float_value;
-} JSON_Obj;
+} JSON_Item;
 
-void print_parser(Parser* parser)
+typedef struct JSON_Obj
 {
-	printf("Parser:\n");
-	// printf("state: %d\n", parser->state);
-	printf("curr_key_name: %s\n", parser->curr_key_name);
-	printf("curr_str_value: %s\n", parser->curr_str_value);
-	printf("curr_int_value: %d\n", parser->curr_int_value);
-}
+	JSON_Item* items;
+	char* name;
+} JSON_Obj;
 
 void skip(Parser* parser)
 {
@@ -102,6 +76,17 @@ void skip(Parser* parser)
 	{
 		parser->json_str++;
 	}
+}
+
+JSON_Item* init_json_item()
+{
+	JSON_Item* new_item = (JSON_Item*) malloc(sizeof(JSON_Item));
+	if (new_item == NULL)
+	{
+		printf("Error: Can't allocate new memory for JSON Item\n");
+	}
+
+	return new_item;
 }
 
 JSON_Obj* init_json_obj()
@@ -161,15 +146,8 @@ int peek_str_length(Parser* parser)
 	return str_length;
 }
 
-void parse_name(Parser* parser, JSON_Obj* item)
+void parse_name(Parser* parser, JSON_Item* item)
 {
-	skip(parser);
-	
-	if (*(parser->json_str) != '\"')
-	{
-		printf("Did not skip to first item name quotation!\n");
-	}
-
 	parser->json_str++; // Point to first character in name string
 
 	int name_length = peek_str_length(parser);
@@ -183,63 +161,81 @@ void parse_name(Parser* parser, JSON_Obj* item)
 		i++;
 	}
 	item->name[i] = '\0';
+	parser->json_str++;
 }
 
-void parse_value(Parser* parser, JSON_Obj* item)
+void parse_value(Parser* parser, JSON_Item* item)
 {
+	assert(*(parser->json_str) == ':');
 
+	parser->json_str++; // Point to first character after :
+	skip(parser);
+
+	while (*(parser->json_str) != ',')
+	{
+		parser->json_str++;
+	}
+
+	parser->json_str++;
 }
 
 void parse_item(Parser* parser, JSON_Obj* item)
 {
-	parse_name(parser, item);
+	// parse_name(parser, item);
 
-	parser->json_str++;
-	skip(parser);
-	if (*(parser->json_str) != ':')
-	{
-		printf("Improperly separated name and value of item.\n");
-	}
+	// parser->json_str++;
+	// skip(parser);
+	// if (*(parser->json_str) != ':')
+	// {
+	// 	printf("Improperly separated name and value of item.\n");
+	// }
 
-	parse_value(parser, item);
+	// parse_value(parser, item);
 }
 
 void parse_object(Parser* parser, JSON_Obj* obj)
 {
-	JSON_Obj* curr_obj = obj->child = init_json_obj();
+	// JSON_Obj* curr_obj = obj->child = init_json_obj();
+	// JSON_Item* curr_item = init_json_item();
+	// skip(parser);
 
-	skip(parser);
-
-	parse_item(parser, curr_obj);	
-
-	// while (*(parser->json_str) && *(parser->json_str) != '}')
-	// {
-	// 	char c = *(parser->json_str);
-	// 	printf("%c", c);
-
-	// 	if (c != '\"')
-	// 	{
-	// 		// printf("Malformed JSON\n");
-	// 	}
-
-	// 	parser->json_str++;	
-	// }
+	//parse_item(parser, curr_obj);	
 }
 
-JSON_Obj* start_Parse(Parser* parser)
+JSON_Obj* parse_JSON(char* json_file_str, const long file_length)
 {
-	JSON_Obj* base;
-	skip(parser);
+	Parser parser = {};
+	parser.json_str = json_file_str;
+	parser.str_length = file_length;
 
-	if (*(parser->json_str) != '{')
+	skip(&parser);
+
+	if (*(parser.json_str) != '{')
 	{
-		printf("Error in beginning of parsing\n");
+		printf("Error: Invalid json. File must begin with \'{\'\n");
 	}
 
-	parser->json_str++;
+	parser.json_str++;
+	skip(&parser);	
 
-	base = init_json_obj();
-	parse_object(parser, base);
+	JSON_Obj* base = init_json_obj();
+
+	// TODO: test code for parsing objects/items
+	//       should be factored out into functions
+	for (;*(parser.json_str) && *(parser.json_str) != '}'; parser.json_str++)
+	{
+		skip(&parser);
+		assert(*(parser.json_str) == '\"');
+
+		// Parse item
+		base->items = init_json_item(); 
+		parse_name(&parser, base->items);
+		printf("Item name: %s\n", base->items->name);
+		parse_value(&parser, base->items);
+		base->items++;
+	}
+
+	base->items--; // TODO: Get rid of this, and find way to reset items pointer
 
 	return base;
 }
@@ -267,13 +263,8 @@ int main()
 		exit(1);
 	}
 
-	Parser parser = {};
-
-	parser.json_str = (char*) malloc(length);
-	strcpy(parser.json_str, buffer);
-	parser.str_length = length;
-
-	JSON_Obj* base_obj = start_Parse(&parser);
+	JSON_Obj* base_obj = parse_JSON(buffer, length);
+	printf("Name of first item: %s\n", base_obj->items->name);
 	
 	// Just here to keep compiler from erroring on unused variables
 	printf("*****************************************\n");

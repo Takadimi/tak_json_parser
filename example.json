@@ -1,5 +1,5 @@
 {
 	"id": 4,
 	"name": "Ethan Woodward",
-	"stuff": [1, 2, 4, 6]
+	"stuff": "not an array but should be",
 }
