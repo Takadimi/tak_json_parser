@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include "tak_json_parser.h"
+#include "tak_json.h"
 
 #define FILE_READ_ERR -1
 
@@ -42,33 +43,6 @@ int read_json_file_into_string(const char* file_path, const long length, char* r
 
 	return 0;
 }
-
-typedef enum
-{
-	ARR_NO_TYPE,
-	ARR_STRING,
-	ARR_INTEGER
-} JSON_ARRAY_TYPE;
-
-typedef struct Parser
-{
-	char* json_str;
-	long str_length;
-} Parser;
-
-typedef struct JSON_Item
-{
-	char* name;
-	char* string_value;
-	int int_value;
-	float float_value;
-} JSON_Item;
-
-typedef struct JSON_Obj
-{
-	JSON_Item* items;
-	char* name;
-} JSON_Obj;
 
 void skip(Parser* parser)
 {
