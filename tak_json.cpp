@@ -225,7 +225,10 @@ JSON_Obj* parse_JSON(char* json_file_str, const long file_length)
 	for (;*(parser.json_str) && *(parser.json_str) != '}'; parser.json_str++)
 	{
 		skip(&parser);
-		assert(*(parser.json_str) == '\"');
+		if (*(parser.json_str) != '\"')
+		{
+			break;
+		}
 
 		// Parse item
 		base->items = init_json_item(); 
@@ -247,7 +250,8 @@ void delete_parser(Parser* parser)
 
 int main()
 {
-	const char* file_path = "/Users/ethanwoodward/Projects/tak_json_parser/example.json";
+	// const char* file_path = "/Users/ethanwoodward/Projects/tak_json_parser/example.json";
+	const char* file_path = "../example.json";
 
 	long length = get_file_length(file_path);
 	if (length == -1)
