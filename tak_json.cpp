@@ -250,7 +250,6 @@ void delete_parser(Parser* parser)
 
 int main()
 {
-	// const char* file_path = "/Users/ethanwoodward/Projects/tak_json_parser/example.json";
 	const char* file_path = "../example.json";
 
 	long length = get_file_length(file_path);
