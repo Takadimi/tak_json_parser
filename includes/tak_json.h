@@ -23,6 +23,7 @@ typedef struct JSON_Item
 
 typedef struct JSON_Obj
 {
-    JSON_Item* items;
     char* name;
+    JSON_Item* items;
+    JSON_Obj* objects;
 } JSON_Obj;

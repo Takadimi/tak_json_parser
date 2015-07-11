@@ -100,7 +100,6 @@ JSON_ARRAY_TYPE peek_array_value_type(Parser* parser)
 
 int peek_str_length(Parser* parser)
 {
-	int peek_counter = 0;
 	int str_length = 0;
 
 	while (*(parser->json_str) != '\"')			
@@ -109,13 +108,7 @@ int peek_str_length(Parser* parser)
 		parser->json_str++;
 	}
 
-	peek_counter = str_length;
-
-	while (peek_counter > 0)
-	{
-		parser->json_str--;
-		peek_counter--;
-	}
+	parser->json_str -= str_length;
 
 	return str_length;
 }
@@ -213,6 +206,10 @@ JSON_Obj* parse_JSON(char* json_file_str, const long file_length)
 	}
 
 	base->items--; // TODO: Get rid of this, and find way to reset items pointer
+	base->items--;
+	base->items--;
+	base->items--;
+	base->items--;
 
 	return base;
 }
@@ -242,10 +239,6 @@ int main()
 
 	JSON_Obj* base_obj = parse_JSON(buffer, length);
 	printf("Name of first item: %s\n", base_obj->items->name);
-	
-	// Just here to keep compiler from erroring on unused variables
-	printf("*****************************************\n");
-	printf("base_obj memory location: %p\n", base_obj);
 
 	return 0;
 }
