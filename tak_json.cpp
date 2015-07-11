@@ -54,7 +54,7 @@ void skip(Parser* parser)
 
 JSON_Item* init_json_item()
 {
-	JSON_Item* new_item = (JSON_Item*) malloc(sizeof(JSON_Item));
+	JSON_Item* new_item = (JSON_Item*) calloc(1, sizeof(JSON_Item));
 	if (new_item == NULL)
 	{
 		printf("Error: Can't allocate new memory for JSON Item\n");
@@ -65,7 +65,7 @@ JSON_Item* init_json_item()
 
 JSON_Obj* init_json_obj()
 {
-	JSON_Obj* new_obj = (JSON_Obj*) malloc(sizeof(JSON_Obj));
+	JSON_Obj* new_obj = (JSON_Obj*) calloc(1, sizeof(JSON_Obj));
 	if (new_obj == NULL)
 	{
 		printf("Error: Can't allocate new memory for JSON Object\n");
@@ -189,7 +189,7 @@ JSON_Obj* parse_JSON(char* json_file_str, const long file_length)
 
 	// TODO: test code for parsing objects/items
 	//       should be factored out into functions
-	for (;*(parser.json_str) && *(parser.json_str) != '}'; parser.json_str++)
+	for ( ;*(parser.json_str) && *(parser.json_str) != '}'; parser.json_str++)
 	{
 		skip(&parser);
 		if (*(parser.json_str) != '\"')
@@ -198,18 +198,12 @@ JSON_Obj* parse_JSON(char* json_file_str, const long file_length)
 		}
 
 		// Parse item
-		base->items = init_json_item(); 
-		parse_name(&parser, base->items);
-		printf("Item name: %s\n", base->items->name);
-		parse_value(&parser, base->items);
-		base->items++;
+		base->items[base->item_count] = init_json_item();
+		parse_name(&parser, base->items[base->item_count]);
+		parse_value(&parser, base->items[base->item_count]);
+		base->item_count++;
+		// TODO: items and objects are arrays of a set size, change to a dynamically allocated version before finishing
 	}
-
-	base->items--; // TODO: Get rid of this, and find way to reset items pointer
-	base->items--;
-	base->items--;
-	base->items--;
-	base->items--;
 
 	return base;
 }
@@ -238,7 +232,13 @@ int main()
 	}
 
 	JSON_Obj* base_obj = parse_JSON(buffer, length);
-	printf("Name of first item: %s\n", base_obj->items->name);
+
+	printf("Items after parse:\n");
+	printf("==================\n\n");
+	for (int i = 0; i < base_obj->item_count; i++)
+	{
+		printf("Item %d name: %s\n", (i + 1), base_obj->items[i]->name);
+	}
 
 	return 0;
 }

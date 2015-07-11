@@ -1,5 +1,8 @@
 #pragma once
 
+#define MAX_ITEM_COUNT 1024
+#define MAX_OBJECT_COUNT 1024
+
 typedef enum
 {
     ARR_NO_TYPE,
@@ -24,6 +27,8 @@ typedef struct JSON_Item
 typedef struct JSON_Obj
 {
     char* name;
-    JSON_Item* items;
-    JSON_Obj* objects;
+    JSON_Item* items[MAX_ITEM_COUNT];
+    int item_count;
+    JSON_Obj* objects[MAX_OBJECT_COUNT];
+    int object_count;
 } JSON_Obj;
