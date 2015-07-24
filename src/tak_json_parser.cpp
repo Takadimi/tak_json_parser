@@ -131,6 +131,12 @@ JSON_Obj* parse_JSON(char* json_file_str, const long file_length)
 	parser.json_str++;
 	skip(&parser);	
 
+	if (*(parser.json_str) == '}')
+	{
+		printf("Base JSON Object is empty!\n");
+		return NULL;
+	}
+	
 	JSON_Obj* base = init_json_obj();
 
 	// TODO: test code for parsing objects/items
@@ -148,7 +154,7 @@ JSON_Obj* parse_JSON(char* json_file_str, const long file_length)
 		parse_name(&parser, base->items[base->item_count]);
 		parse_value(&parser, base->items[base->item_count]);
 		base->item_count++;
-		// TODO: items and objects are arrays of a set size, change to a dynamically allocated version before finishing
+		// TODO: Change to using linked list for items, instead of fixed array
 	}
 
 	return base;

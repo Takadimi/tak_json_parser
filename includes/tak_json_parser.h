@@ -22,6 +22,8 @@ typedef struct JSON_Item
     char* string_value;
     int int_value;
     float float_value;
+    JSON_Item* next;
+    JSON_Item* prev;
 } JSON_Item;
 
 typedef struct JSON_Obj
