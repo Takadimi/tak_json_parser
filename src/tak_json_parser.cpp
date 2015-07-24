@@ -4,6 +4,13 @@
 #include <string.h>
 #include <assert.h>
 
+// TODO: Write basic Linear Memory Allocator?
+/* It should just be a matter of allocating a block
+*  of memory up front and reallocating that block
+*  whenever we run into a point where we need more
+*  memory. Hopefully, that's all there is to it... :/
+*/
+
 void skip(Parser* parser)
 {
 	while ((unsigned char) *(parser->json_str) <= 32)
